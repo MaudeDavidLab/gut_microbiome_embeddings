@@ -1,17 +1,16 @@
-# You will be starting with a repseqs.fasta file
 
 ###############################################################
 ####### Step 1: Modify all pathnames to suit your needs  ######
 ###############################################################
 
-data_dir="../../data/halfvarson" #This should contain your repseqs, seqtab
-out_dir="../../data/halfvarson/embed"
+data_dir="/nfs3/PHARM/David_Lab/christine/public_data/autism/" #This should contain your repseqs, seqtab
+out_dir="/nfs3/PHARM/David_Lab/christine/public_data/autism/embed/"
 r_software_dir="/nfs3/PHARM/David_Lab/christine/software/R-3.6.0/bin"
 blast_software_dir="../../software/ncbi-blast-2.9.0+/bin/"
-blast_db="../../data/blastdb"
-seqtab_file_name="seqtab_t.txt"
-qual_vec_file_name="../../data/embed/embed_.07_100dim.txt" #Labled by ids, not full ASVs
-
+blast_db="blastdb"
+seqtab_file_name="seqtab.txt"
+dim="500"
+qual_vec_file_name="/nfs3/PHARM/David_Lab/christine/public_data/autism/embed_.07_""$dim""dim.txt" #Labled by ids, not full ASVs
 
 ###############################################################################
 ####   Step 2: Use blast to align repseqs to embedding database sequences  ####
@@ -29,9 +28,11 @@ cat "$out_dir/blast_hits.tsv" | sort -k1,1 -k5,5g -k6,6nr | sort -u -k1,1 --merg
 #######  Step 3: Get embedded data  #################
 #####################################################
 #Arguments:
-#asv_file_name - taxa are rows
+#asv_file_name
 #best_hits_file_name
 #embedded_trasmat_file_name
 echo "Embed Data"
-"$r_software_dir/Rscript" embed_asv_table.R "$data_dir/$seqtab_file_name" "$out_dir/best_hits.tsv" "$qual_vec_file_name" "$out_dir"
+"$r_software_dir/Rscript" embed_asv_table.R "$data_dir/$seqtab_file_name" "$data_dir/repseqs.fasta" "$out_dir/best_hits.tsv" "$qual_vec_file_name" "$out_dir"
 
+mv "$out_dir/embedded.rds" "$out_dir/embedded_""$dim"".rds"
+mv "$out_dir/embedded.txt" "$out_dir/embedded_""$dim"".txt"
