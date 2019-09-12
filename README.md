@@ -10,7 +10,7 @@ To write a fasta file containing the sequences:
     #### write sequence table #######################
     #################################################
   ```
-    write.table(seqtab, paste(data_dir, "seqtab.txt", sep = ""),
+    write.table(seqtab, paste(data_dir, "seqtab.txt", sep = "\t"),
                 quote = F, sep = "\t", row.names = T, col.names = T)
 
     ##################################################
