@@ -5,8 +5,8 @@ library(RColorBrewer)
 library(cowplot)
 library(pheatmap)
 
-setwd("C:/Users/ctata/Documents/Lab/quality_vectors_git/data")
-data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_git/data/"
+setwd("C:/Users/ctata/Documents/Lab/quality_vectors_final/data")
+data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_final/data/"
 pathway_dir = paste(data_dir, "/pathways/", sep = "")
 
 
@@ -18,10 +18,10 @@ v <- readRDS(paste(pathway_dir, "pca_embedded_taxa.rds", sep = ""))
 ###  Read qual vecs  ###############
 ####################################
 
-glove_emb <- read.table("C:/Users/ctata/Documents/Lab/quality_vectors_git/data/embed/glove_emb_AG_newfilter.07_100.txt",
-                        quote="\"", comment.char="", row.names = 1, sep = " ", header = F)
+glove_emb <- read.table(paste(data_dir, "embed/embed_.07_100dim.txt", sep = ""),
+                        quote="\"", comment.char="", row.names = 1, sep = " ", header = T)
 
-glove_emb = glove_emb[-which(rownames(glove_emb) == '<unk>'), ]
+#glove_emb = glove_emb[-which(rownames(glove_emb) == '<unk>'), ]
 colnames(glove_emb) <- paste("property_100_", seq(1, 100), sep = "")
 
 ###################################
@@ -153,6 +153,8 @@ plotHeatmap <- function(cor_mat_list){
   p
   dev.off()
 }
+
+
 
 
 #############################################################
@@ -303,7 +305,7 @@ getPathwayNames <- function(pathway_ids){
 allSigCorrs <- pbapply(embed_table_glove, 2, findAllSig, pathway_table)
 sigCorrs_ids <- lapply(allSigCorrs, function(i) return(names(i)))
 sigCorrs_vals <- lapply(allSigCorrs, function(i) return(as.numeric(i)))
-allSigPathNames <- lapply(allSigCorrs_ids, function(i) return(getPathwayNames(i)))
+allSigPathNames <- lapply(sigCorrs_ids, function(i) return(getPathwayNames(i)))
 
 prop_label <- c()
 for(i in seq(1, length(allSigCorrs))){
@@ -314,3 +316,100 @@ for(i in seq(1, length(allSigCorrs))){
 df <- data.frame(property = prop_label, path_id = as.character(unlist(sigCorrs_ids)), path_name = as.character(unlist(allSigPathNames)), corr_val = unlist(sigCorrs_vals))
 
 write.table(df, "pathways/property_pathway_dict_allsig.txt", row.names = F, col.names = T, quote = F, sep = "\t")
+
+
+
+#################################################################
+########### Use broad categories to label properties ############
+#################################################################
+library(ggplot2)
+df <- read.delim("C:/Users/ctata/Documents/Lab/quality_vectors_final/data/pathways/property_pathway_dict_allsig.txt")
+pathway_cat <- read.delim("C:/Users/ctata/Documents/Lab/quality_vectors_final/data/pathways/pathway_category.txt", header=FALSE)
+rownames(pathway_cat) <- as.character(pathway_cat$V2)
+df$category <- pathway_cat[as.character(df$path_name), 3]
+head(df)
+
+
+plotProperties <- function(prop_name){
+  ggplot(df[df$property == prop_name, ], aes(x = category, y = corr_val)) +
+    geom_boxplot() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 70, hjust = 1, size = 10), panel.grid.minor = element_blank(), 
+          panel.border = element_blank(), panel.grid.major = element_blank())+
+    geom_jitter() + 
+    ggtitle(prop_name)
+}
+
+pdf_path = "../figures/properties_visualized.pdf"
+pdf(file=pdf_path)  
+for(prop_name in unique(df$property)){
+  print(prop_name)
+  #plotProperties(prop_name)
+  print(ggplot(df[df$property == prop_name, ], aes(x = category, y = corr_val)) +
+    geom_boxplot() +
+    theme(axis.text.x = element_text(angle = 70, hjust = 1, size = 25))+
+    geom_jitter() + 
+    ggtitle(prop_name))
+}
+dev.off()
+
+
+
+
+#################################################################
+####### Important pathways to visualize  ########################
+#################################################################
+supp_table_2 <- read.csv("C:/Users/ctata/Documents/Lab/quality_vectors_final/figures/final_figures/suppInfor/supp_table_2.csv")
+supp_table_3 <- read.csv("C:/Users/ctata/Documents/Lab/quality_vectors_final/figures/final_figures/suppInfor/supp_table_3.csv")
+
+ibd_2 <- supp_table_2[supp_table_2$cum_timepoint_numtrees >= 8, ]
+ibd_3 <- supp_table_3[supp_table_3$cum_timepoint_numtrees >= 8, ]
+
+imp_props <- intersect(ibd_2$X, ibd_3$X)
+
+ibd_2[ibd_2$X %in% imp_props, ]
+for(prop in imp_props){
+  plotProperties(prop)
+}
+
+
+
+
+
+#################################################################
+########### Use broad taxonomies to label properties ############
+#################################################################
+library(reshape2)
+glove_emb <- read.table(paste(data_dir, "embed/glove_emb_AG_newfilter.07_100.txt", sep = ""),
+                        quote="\"", comment.char="", row.names = 1, sep = " ", header = T)
+
+#glove_emb = glove_emb[-which(rownames(glove_emb) == '<unk>'), ]
+colnames(glove_emb) <- paste("property_100_", seq(1, 100), sep = "")
+
+
+kpcof <- read.csv("C:/Users/ctata/Documents/Lab/quality_vectors/data/AG_new/feces/annotations/kpcof_annotation.txt",
+                  sep="", colClasses = rep("character", 6))
+kpcof[is.na(kpcof)] = ""
+kpcof <- kpcof[!duplicated(kpcof$Seq), ]
+rownames(kpcof) <- kpcof$Seq
+
+df_qual <- glove_emb
+df_qual <- df_qual[rownames(df_qual) %in% rownames(kpcof), ]
+
+df_qual <- df_qual
+#df_qual <- df_qual[1:10, ]
+melted <- melt(df_qual)
+colnames(melted) <- c("property", "asv", "value")
+annotation <- kpcof[melted$asv, "Phylum"]
+melted$annotation <- annotation
+melted$property <- as.character(melted$property)
+
+plotTaxa <- function(prop_name, df){
+  ggplot(df[df$property == prop_name, ], aes(x = annotation, y = value)) +
+    geom_boxplot() +
+    theme(axis.text.x = element_text(angle = 70, hjust = 1))+
+    geom_jitter() + 
+    ggtitle(prop_name)
+}
+plotTaxa("property_100_1", melted)
+
