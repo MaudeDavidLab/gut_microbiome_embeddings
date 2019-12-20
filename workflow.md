@@ -25,6 +25,7 @@
   - label_qualvec_transform_mat.R
   
 # 7. Process the tables together
+  ### Use script match_otu_mapping.py
   - Match ASV sample names with mapping sample names (err-to-qid.txt)
   - Drop ASVs in ASV table that are not present in transformation matrix
   - Include only samples that have dietary information
@@ -36,14 +37,16 @@
   - robustness_test.py 
   
 # 9. Test model performance on test set (Fig. 2B):
-  - predict_AGP_test.py (
+  - predict_AGP_test.py
   
 # 10. Train and test model on independent dataset (Fig. 2C)
   - data from this paper by Halfvarson et. al: https://www.ncbi.nlm.nih.gov/pubmed/28191884
   - halfvarson.predict.py
   
 # 11. Run piphillan
-  - Get nearest 3-letter genome code for each ASV 
+  - http://piphillin.secondgenome.com/
+  - Provide ASV table, fasta file, select KEGG database version Oct 2018
+  - Get nearest 3-letter genome code for each ASV (file_name = 200p_otu_genome_hit_table.txt)
 
 # 12. Get associated pathway information for each 3-letter genome code
    - KEGG_genomes.R
