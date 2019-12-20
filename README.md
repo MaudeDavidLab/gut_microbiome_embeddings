@@ -1,3 +1,5 @@
+# Data files: http://files.cgrb.oregonstate.edu/David_Lab/microbiome_embeddings/
+
 # How to embed your data
 ## All code in this tutorial is meant as a guide/example. It's not a complete wrapper, and will likely not be plug-and-play for you and your system. A complete package is in the works, however, it is not available at this time.
 
