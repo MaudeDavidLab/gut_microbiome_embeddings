@@ -21,9 +21,13 @@ warnings.filterwarnings('ignore')
 from collections import Counter
 import multiprocessing as mp
 
+###################################
+##### UPDATE VARIABLES  ###########
+###################################
 print("Starting program")
 data_dir = "../data/"
 fig_dir = "../data/halfvarson/figs/"
+id_thresh = 100
 
 qual_vecs, embed_ids, embed_seqs = hf.getQualVecs(data_dir)
 #seed = sys.argv[1]
@@ -51,7 +55,7 @@ best_hits.columns = ["query_id", "hit_id", "query_seq", "hit_seq", "evalue", "bi
 best_hits = best_hits.set_index('query_id')
 keep = [i < 1E-29 for i in best_hits['evalue'] ]
 best_hits = best_hits.loc[keep, :]
-keep = [i == 100 for i in best_hits['perc_id']]
+keep = [i >= id_thresh for i in best_hits['perc_id']]
 best_hits = best_hits.loc[keep, :]
 best_hits = best_hits.loc[[i in otu_use.columns.values for i in best_hits['query_seq']], :]
 
@@ -256,10 +260,10 @@ def runTest(seed, otu_use, mapping):
 		    print("PR pca: " + str(pr_auc_pca))
 
 
-		df.to_csv(fig_dir + "/halfvarson_df_fullasv_100id" + str(seed) + ".csv")
+		df.to_csv(fig_dir + "/halfvarson_df_fullasv_" + str(id_thresh) + "id" + str(seed) + ".csv")
 
 		f = plotLineGraph(df)
-		f.savefig(fig_dir + '/halfvarson_performance_trainsize_fullasv_100id' + str(seed) + '.pdf')
+		f.savefig(fig_dir + '/halfvarson_performance_trainsize_fullasv_' + str(id_thresh) + 'id' + str(seed) + '.pdf')
 	except Exception as e:
 		return e
 
@@ -301,9 +305,7 @@ def plotLineGraph(df, df_std):
 
 import glob
 import pandas as pd
-files = glob.glob('C:/Users/ctata/Documents/Lab/quality_vectors_git/data/halfvarson/figs/100id/*.csv')
-#files = glob.glob('C:/Users/ctata/Documents/Lab/quality_vectors_git/data/halfvarson/figs/99id/*.csv')
-#files = glob.glob('C:/Users/ctata/Documents/Lab/quality_vectors_git/data/halfvarson/figs/97id/*.csv')
+files = glob.glob(fig_dir + '/' + str(id_thresh) + "id/*.csv")
 
 dfs = []
 for f in files:
