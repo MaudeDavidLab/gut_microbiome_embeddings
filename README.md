@@ -40,14 +40,20 @@ cat "$out_dir/blast_hits.tsv" | sort -k1,1 -k5,5g -k6,6nr | sort -u -k1,1 --merg
 #### See step 4 of scripts/embed_your_data/embedDataset.sh
 
 ```
-asv_file = "seqtab_final.rds"
-repseqs_file = "repseqs.fasta"
-best_hits_file = "embed/best_hits.tsv"
-qual_vec_file = "../embed/embed_.07_100dim.txt"
-out_dir = "embed/"
+#########################
+### Read ASV table ######
+#########################
+#taxa are rows when read in, but we transform the matrix so that the dot product makes sense
 
+#seqtab <- read.table(asv_file, header = T, row.names = 1)
 seqtab <- readRDS(asv_file)
 colnames(seqtab) <- gsub("X","", colnames(seqtab))
+
+
+#############################
+## Read best hits table #####
+## from blast ###############
+#############################
 
 id_thresh = 99
 best_hits <- read.delim(best_hits_file, header=FALSE, row.names = 1)  ## CHANGE TO BLAST OUTPUT - SEE README
@@ -56,6 +62,7 @@ colnames(best_hits) <- c("hit_id", "query_seq", "hit_seq", "evalue", "bitscore",
 #Filter best_hits table to only include hits that pass the e-value threshold
 best_hits <- best_hits[best_hits$evalue < 1*10^(-29), ]
 best_hits <- best_hits[best_hits$piden >= id_thresh, ]
+
 
 
 fasta <- read.table(repseqs_file)
