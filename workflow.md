@@ -1,13 +1,15 @@
-# 1. Download fastqs from EBI:
+# 1. Download fastqs from EBI for the American Gut Dataset:
   - Select columns "Run accession" and "Sample Title" to create err-to-qid.txt
   - Grab ftp links for each fastq from the appropriate column in manifest PRJEB11419
   - paste "ftp://" in front of each link
-  - wget -i ftp_fastqs.txt
+  - In a consol, run `wget -i ftp_fastqs.txt`
   
 # 2. Process using Dada2:
-  - dada2_filtering.R
-  - dada2_inferVariants.R
-  - dada2_chimeras.R
+### Because the number of samples to process was so large, they are processed in 3 steps, with objects saved
+### 1. Change the path name in dada2_filtering.R to point to the folder that holds the downloaded fastqs
+### 2. Run `Rscript dada2_filtering.R` . The script will create two folders, filtered_100 and filtered_150, based on the number of nucleotides per read. There was a large variability in the quality and length of reads.
+### 3. Run `Rscript dada_inferVariants.R  --filtpath --errorFile --outfile `. The script will output and object named using the outfile passed in as an arguement.
+### 4. Run `Rscript dada2_chimeras.R`. The script loads all of the seqtab objects from the previous step, merges them, and removes chimeric sequences. The script outputs the file seqtab_final.txt, which is the sample x ASV table
 
 # 3. Filter taxa for prevalence
   - filterTaxaPrevalence.R
