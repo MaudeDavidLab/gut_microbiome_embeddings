@@ -318,3 +318,4 @@ df_std
 df_avg = pd.concat(dfs).groupby(level=0).mean()
 print(df_avg)
 f = plotLineGraph(df_avg, df_std)
+f.save_fig(fig_dir + '/halfvarson_performance.png')
