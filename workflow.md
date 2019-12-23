@@ -34,27 +34,40 @@
   - Split into train and test sets. Use test sample names saved in step 4. 
   - save as python objects otu_train/test_.07.obj and map_train/test_.07.obj
   
-# 7. Robustness over hyperparameter test (Fig. 2A):
+# 7. Robustness over hyperparameter test (Fig. 2):
 ### Open `robustness_test_ASV.ipynb` with jupyter notebook and run each cell. 
 ### The script will use cross validation to check the performance of data transformation (ASVs, embedding, PCA) over hyperparameters of a random forest model. It plots each hyperparamter combination as a dot in the boxplot of the appropriate data transformation.
   
-# 8. Test model performance on test set (Fig. 2B):
+# 8. Test model performance on test set (Fig. 3):
 ### 1. Change the data_dir and fig_dir directories in the script
 ### 2. Run `python predict_AGP_testset.py`
 ### The script trains a random forest model on each data transformation, and then tests that model performance on a held out test set (those samples in test_samples.txt from step 3). It outputs figures in the specified figure directory under the name "curves_AGP_test_*data_transformation*.pdf"
   
-# 9. Train and test model on independent dataset (Fig. 3B)
+# 9. Train and test model on independent dataset (Fig. 4)
 ### 1. Download data from this paper by Halfvarson et. al: https://www.ncbi.nlm.nih.gov/pubmed/28191884
-### 2. Run `python halfvarson_predict.py`
-### The script trains random forest models using cross validation to predict IBD status. It includes incrementally more samples in the training set, to observe the effect of higher training set sizes on performance, and compare that effect across data transformations. It outputs
-  
-# 11. Run piphillan
-  - http://piphillin.secondgenome.com/
-  - Provide ASV table, fasta file, select KEGG database version Oct 2018
-  - Get nearest 3-letter genome code for each ASV (file_name = 200p_otu_genome_hit_table.txt)
+### 2. Change the data_dir, fig_dir, and id_thresh (% similarity of ASV in query to embedding set to be considered a match)
+### 3. Run `python halfvarson_predict.py`
+### The script trains random forest models using cross validation to predict IBD status. It includes incrementally more samples in the training set, to observe the effect of higher training set sizes on performance, and compare that effect across data transformations. It outputs intermediate csv and pdf files into the figure directory given at the beginning of the file, and outputs a plot showing the AUC ROC and AUC PR over training set size for each transformation.
 
-# 12. Get associated pathway information for each 3-letter genome code
-   - KEGG_genomes.R
+# 10. Train model on AGP, and test on Halfvarson (Fig. 5B)
+### 1. Change the data_dir, fig_dir, and id_thresh (% similarity of ASV in query to embedding set to be considered a match)
+### 2. Open `train_ag_test_half.ipynb` in a jupyter notebook, and run all cells. 
+Results including accuracy, precision, recall, f1, and f2 scores will be printed in the last two cells for an ASV-based model and an embedding-based model
+
+# 11. Train model on AGP, and test on Schirmer( Fig. 5C)
+### 1. Change the data_dir, fig_dir, and id_thresh (% similarity of ASV in query to embedding set to be considered a match)
+### 2. Open `train_ag_test_huttenhower.ipynb` in a jupyter notebook, and run all cells. 
+Results including accuracy, precision, recall, f1, and f2 scores will be printed in the last two cells for an ASV-based model and an embedding-based model
+  
+# 12. Run piphillan
+### 1. Go to the following url: http://piphillin.secondgenome.com/
+### 2. Fill in the form with the appropriate information. "OTU abundance table" is the seqtab_final.txt ASV table from step 3. "Representative Sequence File" is the repseqs.fasta file from step 3. Select KEGG database version Oct 2018, and a 97% similarity cutoff
+### 3. Wait to receive an email with the results, and save into a data directory. We will use the file 200p_otu_genome_hit_table.txt which contained the nearest 3-letter genome code
+
+# 13. Get associated pathway information for each 3-letter genome code
+### Run `Rscript KEGG_genomes.R`. The script will create an ASV by pathway (kegg id) binary table called otu_pathway_table.txt that indicates which pathways are present in which ASVs according to KEGG and Piphillan.
    
-# 13. Run correlation test between embedding dimensions and metabolic pathways
-  - metabolic_correlations.R
+# 14. Run correlation test between embedding dimensions and metabolic pathways
+### 1. Change data_dir and fig_dir in the beginning of the script.
+### Run `Rscript metabolic_correlations.R`.
+### The script will create correlation matrices between properties and metabolic pathways, and plot these. It will also calculate all the significantly correlation pathways per property using a permutation test, and save these in pathways/property_pathway_dict_allsig.txt. Lastly, it will visualize each property as a combination of broad metabolic categories, and save this in properties_visualized.pdf
