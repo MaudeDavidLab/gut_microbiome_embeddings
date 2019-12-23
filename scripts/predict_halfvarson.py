@@ -196,26 +196,7 @@ def drawFigures(X_train, X_test, y_train, y_test, asin_params, embed_params, pca
     return(roc_auc_asin, pr_auc_asin, roc_auc_embed, pr_auc_embed, roc_auc_pca, pr_auc_pca)
 from matplotlib import pyplot as plt
 
-def plotLineGraph(df, df_std):
-    f = plt.figure(figsize=(15,5))
-    flatui = ["#9b59b6", "#3498db", "#e74c3c", "#2ecc71"]
-    plt.subplot(1,2,1)
-    plt.plot(df.train_size, df.roc_asin, color = flatui[0], marker = 'o')
-    plt.plot(df.train_size, df.roc_embed, color = flatui[1], marker = 'o')
-    plt.plot(df.train_size, df.roc_pca, color = flatui[2], marker = 'o')
-    #plt.errorbar(df.train_size, df.roc_asin, yerr = df_std.roc_asin, color = flatui[0])
-    #plt.errorbar(df.train_size, df.roc_embed, yerr = df_std.roc_embed,  color = flatui[1])
-    #plt.errorbar(df.train_size, df.roc_pca, yerr = df_std.roc_pca, color = flatui[2])
-    
-    plt.legend(labels = ['Asin', 'Embed', 'PCA'], loc = 'lower right')
 
-    plt.subplot(1, 2, 2)
-    plt.plot(df.train_size, df.pr_asin, color = flatui[0], marker = 'o')
-    plt.plot(df.train_size, df.pr_embed, color = flatui[1], marker = 'o')
-    plt.plot(df.train_size, df.pr_pca, color = flatui[2], marker = 'o')
-    
-    plt.legend(labels = ['Asin', 'Embed', 'PCA'], loc = 'lower right')
-    return(f)
 
 
 
@@ -296,6 +277,28 @@ pool.close()
 ###########################################
 ####### Read in files to plot results #####
 ###########################################
+
+def plotLineGraph(df, df_std):
+    f = plt.figure(figsize=(15,5))
+    flatui = ["#9b59b6", "#3498db", "#e74c3c", "#2ecc71"]
+    plt.subplot(1,2,1)
+    plt.plot(df.train_size, df.roc_asin, color = flatui[0], marker = 'o')
+    plt.plot(df.train_size, df.roc_embed, color = flatui[1], marker = 'o')
+    plt.plot(df.train_size, df.roc_pca, color = flatui[2], marker = 'o')
+    #plt.errorbar(df.train_size, df.roc_asin, yerr = df_std.roc_asin, color = flatui[0])
+    #plt.errorbar(df.train_size, df.roc_embed, yerr = df_std.roc_embed,  color = flatui[1])
+    #plt.errorbar(df.train_size, df.roc_pca, yerr = df_std.roc_pca, color = flatui[2])
+    
+    plt.legend(labels = ['Asin', 'Embed', 'PCA'], loc = 'lower right')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(df.train_size, df.pr_asin, color = flatui[0], marker = 'o')
+    plt.plot(df.train_size, df.pr_embed, color = flatui[1], marker = 'o')
+    plt.plot(df.train_size, df.pr_pca, color = flatui[2], marker = 'o')
+    
+    plt.legend(labels = ['Asin', 'Embed', 'PCA'], loc = 'lower right')
+    return(f)
+
 import glob
 import pandas as pd
 files = glob.glob('C:/Users/ctata/Documents/Lab/quality_vectors_git/data/halfvarson/figs/100id/*.csv')
