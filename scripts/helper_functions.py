@@ -235,9 +235,9 @@ def makeMappingNumeric(map_train, map_test, number_criteria, cat_criteria):
 
     if "IBD" in cat_criteria:
         print("IBD")
-        ibd_dict = {'I do not have this condition':0, 'Self-diagnosed':1, 
+        ibd_dict = {'I do not have this condition':0, 'Self-diagnosed':0, 
                     'Diagnosed by a medical professional (doctor, physician assistant)':1,
-                    'Diagnosed by an alternative medicine practitioner':1}
+                    'Diagnosed by an alternative medicine practitioner':0}
         map_train_correct, map_test_correct = makeNumeric("IBD", ibd_dict, map_train, map_test, map_train_correct, map_test_correct)
         
     if "IBS" in cat_criteria:

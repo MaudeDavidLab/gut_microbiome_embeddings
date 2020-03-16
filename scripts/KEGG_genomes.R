@@ -1,6 +1,6 @@
+library(readr)
 
-
-setwd("C:/Users/ctata/Documents/Lab/quality_vectors_git/data/")
+setwd("C:/Users/ctata/Documents/Lab/quality_vectors_final/data/")
 
 combineKOlists <- function(l){
   combo <- do.call(rbind, lapply(lapply(l, unlist), "[",

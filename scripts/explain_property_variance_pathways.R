@@ -1,5 +1,11 @@
-setwd("C:/Users/ctata/Documents/Lab/quality_vectors_git/data")
-data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_git/data/"
+setwd("C:/Users/ctata/Documents/Lab/quality_vectors_final/data")
+data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_final/data/"
+pathway_dir = paste(data_dir, "/pathways/", sep = "")
+
+
+
+setwd("C:/Users/ctata/Documents/Lab/quality_vectors_final/data")
+data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_final/data/"
 pathway_dir = paste(data_dir, "/pathways/", sep = "")
 
 
@@ -7,7 +13,7 @@ pathway_dir = paste(data_dir, "/pathways/", sep = "")
 ###  Read qual vecs  ###############
 ####################################
 
-glove_emb <- read.table("C:/Users/ctata/Documents/Lab/quality_vectors_git/data/embed/glove_emb_AG_newfilter.07_100.txt",
+glove_emb <- read.table(paste(data_dir, "/embed/glove_emb_AG_newfilter.07_100.txt", sep = ""),
                         quote="\"", comment.char="", row.names = 1, sep = " ", header = F)
 
 glove_emb = glove_emb[-which(rownames(glove_emb) == '<unk>'), ]
@@ -17,7 +23,7 @@ colnames(glove_emb) <- paste("property_100_", seq(1, 100), sep = "")
 ###   Get pathway table   #########
 ###################################
 
-pathway_table <- readRDS("C:/Users/ctata/Documents/Lab/quality_vectors_git/data/pathways/otu_pathway_table.RDS")
+pathway_table <- readRDS(paste(data_dir, "/pathways/otu_pathway_table.RDS", sep = ""))
 keep <- colSums(pathway_table) > 0
 keep2 <- colSums(pathway_table) < nrow(pathway_table)
 pathway_table <- pathway_table[, keep & keep2]

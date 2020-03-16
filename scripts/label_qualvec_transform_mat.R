@@ -23,3 +23,12 @@ write.table(qual_vecs_750, "C:/Users/ctata/Documents/Lab/quality_vectors_git/dat
 headers_new <- paste(">", headers, sep= "")
 fasta <- paste(headers_new, seqs, sep = "\n", collapse = "\n")
 write(fasta, "C:/Users/ctata/Documents/Lab/quality_vectors_git/data/embed/seqs_.07.fasta")
+
+
+
+
+
+
+
+
+

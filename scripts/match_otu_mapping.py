@@ -8,8 +8,8 @@ import importlib
 import math
 import copy
 
-data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_git/data/AG_new"
-otu_file = data_dir + "/seqtab_final_filter.07.txt"
+data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_final/data/AG_new/"
+otu_file = data_dir + "/filter_.07/seqtab_final_filter.07.txt"
 otu = pd.read_csv(otu_file, sep = "\t", index_col= 0)
 print("Samples: " + str(otu.shape[0]) + "  Taxa: " + str(otu.shape[1]))
 
@@ -21,8 +21,7 @@ err_qid = pd.read_csv(data_dir + "/err-to-qid.txt", sep = "\t", index_col = 0)
 convert_sample_ids = err_qid.loc[otu.index.values, :]
 otu = otu.set_index(convert_sample_ids.sample_title)
 
-otu_clean, qual_vecs_clean = hf.match_otu_qual(otu, qual_vecs)
-otu_clean, map_clean = hf.match_otu_map(otu_clean, mapping)
+otu_clean, map_clean = hf.match_otu_map(otu, mapping)
 
 number_criteria = []
 cat_criteria = ["IBD", "EXERCISE_FREQUENCY", "SEX", "ONE_LITER_OF_WATER_A_DAY_FREQUENCY", 
@@ -32,7 +31,8 @@ cat_criteria = ["IBD", "EXERCISE_FREQUENCY", "SEX", "ONE_LITER_OF_WATER_A_DAY_FR
 
 otu_clean, map_clean = hf.filterForMetadata(otu_clean, map_clean, number_criteria, cat_criteria)
 
-
+print("ASV shape: " + str(otu_clean.shape))
+print("Map shape: " + str(map_clean.shape))
 
 #Make train/test set
 test_samples_file = data_dir + "/test_samples.txt"
@@ -51,19 +51,34 @@ map_train = map_train.drop('BODY_SITE', axis = 1)
 map_test = map_test.drop('BODY_SITE', axis = 1)
 map_train, map_test = hf.makeMappingNumeric(map_train, map_test, number_criteria, cat_criteria)
 
+print(np.sum(map_train.loc[: , "IBD"] == 0) + np.sum(map_test.loc[: , "IBD"] == 0))
+print(np.sum(map_train.loc[: , "IBD"] == 1) + np.sum(map_test.loc[: , "IBD"] == 1))
+
 filt = ".07"
-f = open(data_dir + "/otu_train_" + str(filt) + ".obj", "wb")
+f = open(data_dir + "filter_.07/otu_train_" + str(filt) + "2.obj", "wb")
 pickle.dump(otu_train, f)
 f.close()
 
-f = open(data_dir + "/otu_test_" + str(filt) + ".obj", "wb")
+f = open(data_dir + "filter_.07/otu_test_" + str(filt) + "2.obj", "wb")
 pickle.dump(otu_test, f)
 f.close()
 
-f = open(data_dir + "/map_train_" + str(filt) + ".obj", "wb")
+f = open(data_dir + "filter_.07/map_train_" + str(filt) + "2.obj", "wb")
 pickle.dump(map_train, f)
 f.close()
 
-f = open(data_dir + "/map_test_" + str(filt) +  ".obj", "wb")
+f = open(data_dir + "filter_.07/map_test_" + str(filt) +  "2.obj", "wb")
 pickle.dump(map_test, f)
 f.close()
+
+
+
+tmp = map_train.append(map_test)
+tmp.to_csv(data_dir + "filter_.07/map_filter.07_ml.csv")
+
+
+tmp = otu_train.append(otu_test)
+tmp.to_csv(data_dir + "filter_.07/asv_filter.07_ml.csv")
+
+
+
