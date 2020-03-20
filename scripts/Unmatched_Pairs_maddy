@@ -1,0 +1,24 @@
+# Program used if there are an unequal number of forward and reverse reads, or if sample names don't match.
+
+# Set paths to separate folders containing the forward and reverse reads.
+pathF = "/nfs3/PHARM/David_Lab/maddy/T2DStudycopy/Forward/"
+pathR = "/nfs3/PHARM/David_Lab/maddy/T2DStudycopy/Reverse/"
+
+F = sort(list.files(pathF, pattern = "fastq"))
+R = sort(list.files(pathR, pattern = "fastq"))
+
+# sapply step will vary depending on naming scheme of samples. Split the name before any part that denotes forward or reverse. 
+sampleR.names = sapply(strsplit(basename(R), "_R2"), `[`, 1)
+sampleF.names = sapply(strsplit(basename(F), "_R1"), `[`, 1)
+
+R2 <- R[sampleR.names %in% sampleF.names]
+F2 <- F[sampleF.names %in% sampleR.names]
+Ex1 = R[!sampleR.names %in% sampleF.names]	# Store names of any samples in the reverse folder that aren't in the forward folder.
+Ex2 = F[!sampleF.names %in% sampleR.names]	# Store names of any samples in the forward folder that aren't in the reverse folder.
+
+print(Ex1)	# Get sample ids that are only present in one of the folders. Ensure amount of forward and reverse reads are the same.
+print(Ex2)
+length(R2)
+length(F2)
+
+# Your next step is  to move any unmatched samples out of your folders.

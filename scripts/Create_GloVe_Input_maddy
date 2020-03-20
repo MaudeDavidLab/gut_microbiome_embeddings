@@ -1,0 +1,34 @@
+# Python program that, given a text file of an ASV table, creates two files: one to use with GloVe that contains 85% of the samples in the ASV table, and a second file that contains 15% of the samples to test on the GloVe algorithim once it has been made.
+
+import csv
+import numpy as np
+import random
+
+f = open("forGloVe.txt", 'r')   #ASV file (txt file)
+outfile = open("gloveinput.txt", mode = 'w')    # Name of output file to run through GloVe
+test_samples = open("testsamples.txt", 'w')     # Name of output file to use to test GloVe algorithim
+
+writer = csv.writer(outfile, delimiter = "\t", quoting = csv.QUOTE_NONE, escapechar = '')
+writerT = csv.writer(test_samples, delimiter = "\t", quoting = csv.QUOTE_NONE, escapechar = '\n')
+taxa_names = f.readline()       #Reads first row, AKA the column names/unique sequences
+taxa_names = taxa_names.strip().split("\t")
+i = 0   # Counters to ensure that roughly 15% of samples have been withheld from the GloVe input file
+j = 0
+test_samples = []
+random.seed(0)
+
+for line in f:
+        vec = line.split("\t")
+        sample_id = vec[0]      # Stores the first element of the line, the row name/sample ID
+        if random.random() > 0.15:      # In 85% of cases, do the following:
+                present = [float(value) > 0 for value in vec[1:]]       # Store all values with a value greater than 0; AKA the sequences that are present
+                writer.writerow(np.array(taxa_names)[present])  # Write only the sequences that are present to gloveinput.txt
+                i = i + 1       
+        else:   # In the remaining 15% of cases, write that row to the test samples output file
+                writerT.writerow(vec)
+        j += 1
+print(i)        # Check that i is about 85% of j
+print(j)
+
+f.close()
+outfile.close()

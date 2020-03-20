@@ -1,0 +1,44 @@
+# This pipeline processes forward-read-only fastq files and outputs an ASV table (samples by sequences)
+# This program is based on the following tutorial: https://benjjneb.github.io/dada2/bigdata.html
+# Because error rates and quality levels can differ between studies, we recommend processing each of 
+# your studies independently. This pipeline can't be used with fasta files, which do not have quality data
+# Dada2 uses quality data to find where the sequencing machinery made errors, and corrects them, ensuring
+# there is not extra "unique" sequences that are actually the same as others, but with errors
+
+library("dada2") #program used to filter, trim, and infer unique variants of DNA sequences
+path = "/nfs3/PHARM/David_Lab/maddy/IBDStudy" #set file path to folder that has data
+filtpath = file.path(path, "filtered") #path for the filtered files created in the filterAndTrim step
+fns = list.files(path, pattern="fastq")
+
+print(fns) #optional step to check file path is correct
+
+#the following may need to be modified to suit your samples. Note that this study had short sequences.
+#for other studies, our trim length was in the 200-280 nucleotides range.
+
+output = filterAndTrim(file.path(path, fns), file.path(filtpath,fns),
+        truncLen=140, maxEE=1, truncQ=11, rm.phix=TRUE,
+        compress=TRUE, verbose=TRUE, multithread=TRUE)
+print(head(output)) #compare reads in and reads out, ensure that most of the reads have been kept
+
+filtpath = "/nfs3/PHARM/David_Lab/maddy/IBDStudy/filtered"
+filts = list.files(filtpath, pattern = "fastq", full.names=TRUE)
+sample.names = sapply(strsplit(basename(filts), ".fastq"), `[`, 1) #you may need to edit this line 
+#depending on the pattern of your sample IDS
+
+print(sample.names) #optional step to check sample names have been split correctly
+names(filts) = sample.names
+set.seed(100)
+errA = learnErrors(filts, multithread=TRUE, randomize=TRUE) #learn error rates in samples
+dds = vector("list", length(sample.names)) #list to temporarily store results of dada step
+names(dds) = sample.names
+
+for(sam in sample.names) {
+        cat("Processing:", sam, "\n")
+        derep = derepFastq(filts[[sam]])        #dereplicate filtered samples
+        dds[[sam]] = dada(derep, err=errA, multithread=TRUE)    #perform sequence variant inference
+}
+
+seqtabIBD = makeSequenceTable(dds)
+dim(seqtabIBD)  #check all samples are present
+sum(seqtabIBD)  #total number of reads
+saveRDS(seqtabIBD, "/nfs3/PHARM/David_Lab/maddy/IRDSA2")
