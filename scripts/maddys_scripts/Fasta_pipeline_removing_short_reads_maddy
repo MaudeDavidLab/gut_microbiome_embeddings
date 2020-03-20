@@ -1,0 +1,102 @@
+# This sample program takes in fasta files and outputs an ASV table
+# ASV tables contain information about which samples in the table contain which DNA sequences
+# The column names of the table will be the DNA sequences. The row names will be the sample IDs
+# Cells will have contain the number of sequence occurences in that sample
+
+# loading req'd packages. The ShortRead package is used to read in fasta files,
+# dada2 to find unique sequences, and rlist to bind rows together
+library(ShortRead)
+library(dada2)
+library(rlist)
+
+# Establish file path to samples, vector of sample names, and a named list of the samples
+path = "~/Desktop/Fasta"
+fasta = list.files(path, pattern =".fsa", full.names = TRUE)
+sample.names = sapply(strsplit(basename(fasta), ".fsa"), `[`, 1)
+names(fasta) = sample.names
+
+# Currently empty vectors that will be used to store the results of the following steps
+reads = vector("list")
+seqs = vector()
+
+# For each sample, read in the fasta file and store it. Each sample
+# will have two parts: top and distribution. Top contains the information
+# needed for the ASV table: the sequences in the sample, and how often they occur.
+# The distribution component has other information that isn't needed here.
+# We specify the correct part by adding $top to the end of reads[[sam]].
+
+for(sam in sample.names){
+  x = readFasta(fasta[[sam]])
+  reads[[sam]] = tables(x)
+  y = names(reads[[sam]]$top)
+  seqs = c(seqs, y)
+}
+
+# getting a list of the unique sequences using dada2. Creating an empty vector
+# to store the results of the next for-loop in
+unqASVs = unique(seqs)
+tobind = vector("list")
+
+# For each sample, again read in the fasta file and extract the $top component.
+# Create an "empty" vector of the same length as the vector of unique sequences,
+# and give each a value of 0. Give this empty vector the names of the unique sequences.
+# When the sequences in the sample matches the sequences in the empty vector, copy over
+# the number of occurences to the empty vector. The result will be a vector that
+# contains the occurence information of that sample for all of the unique sequences,
+# not just the ones that appear in the sample. The result of this will be the row
+# for that sample in the ASV table. This step ensures that each row has the same
+# dimensions and column names, which makes binding them together easier.
+
+for(sam in sample.names){
+  x = readFasta(fasta[[sam]])
+  reads[[sam]] = tables(x)
+  z = reads[[sam]]$top
+  empty = rep(0,length(unqASVs))
+  names(empty) = unqASVs
+  empty[names(z)] = z
+  tobind[[sam]] = empty
+}
+
+# Bind together the rows that were created in the for-loop into one table
+ASVtable = do.call(rbind, tobind)
+
+# You could stop here and save your ASV table. However, our sample had a large variation
+# in sequence lengths, and we decided to remove all reads that were below 300
+# nucleotides in length. The following code deals with that.
+
+# How we checked the length of sequences after making the ASV
+e = colnames(ASVtable)
+hist(nchar(e))
+# The next two lines are used to find how much data is lost after removing short reads
+dim(ASVtable)
+sum(ASVtable)
+
+# Checks each column in the table to find which sequences are too short. 
+# Adds long ones to the vector "keep"
+drops = vector("list")
+keep = vector("list")
+for(i in colnames(ASVtable)){
+  if(nchar(i) < 300) {
+    drops[[i]] = i
+  } 
+  else{
+    keep[[i]] = i
+  }
+}
+
+# Creates a new table that only includes the columns of sequences that were long enough
+ASV2 = ASVtable[ , (colnames(ASVtable) %in% keep)]
+
+# Don't forget to save your results
+saveRDS(ASV2, "Sequence Table Name")
+
+# The following is just checking that everything went as planned, and seeing how
+# many unique sequences and reads were lost in the process. You can compare to your
+# earlier numbers. The sum will get you the total number of reads in the table across
+# all samples. If your table loses columns, then you have lost some unique sequences.
+
+d = colnames(ASV2)
+hist(nchar(d))
+dim(ASV2)
+sum(ASV2)
+

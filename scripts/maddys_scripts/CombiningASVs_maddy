@@ -1,0 +1,46 @@
+# Program to combine multiple ASVs table into one large table, and output
+# the table and a fasta file of the unique sequences
+
+# This package is used to conveniently bind together the tables
+# and automatically fill in empty cells with zeroes instead of NA
+require(gtools)
+
+# Create variable that reads in each ASV table. Can do more by reading
+# in more tables and including them in the smartbind step
+a = readRDS("Path/to/Table1")
+b = readRDS("Path/to/Table2")
+
+# Bind together tables, giving the option for how to fill empty cells
+WholeTable = smartbind(a, b, fill = 0)
+
+# Note that your table will be missing its row names/sample IDs. Here are the steps
+# to reapply row names:
+
+anames = rownames(a)
+bnames = rownames(b)
+nameslist = c(anames, bnames)
+rownames(WholeTable) = nameslist
+
+# It is worth verifying that the rows added in the correct order, but this should be correct
+
+#If you need a fasta file that contains one copy each of the sequences:
+
+# Package used to write out a fasta file
+require(seqinr)
+
+# Create a vector that contains the column names of the ASV table (AKA the sequences)
+z = vector()
+z = append(z, colnames(WholeTable))
+
+# Check that you have all your sequences
+length(z)
+
+# Create a vector that will hold identifiers for the sequences that follow the pattern:
+# ASV1, ASV2, ASV3, etc.
+y = vector()
+for(i in length 1:length(z)){
+	y[[i]] = paste("ASV", i, sep = "")
+}
+
+names(z) = y
+write. fasta(sequences = as.list(z), names = as.list(names(z)), file.out = "Name of Fasta File", open = "w")

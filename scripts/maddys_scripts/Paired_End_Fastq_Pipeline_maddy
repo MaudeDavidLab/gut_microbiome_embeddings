@@ -1,0 +1,63 @@
+# Remote server pipeline to process paired-end fastq files (forward and reverse reads) to get an ASV table of unique sequences by samples. Dada2 uses the quality data present in fastq files to correct errors left behind by the sequencing machinery. Because this data is paired-end, the two matching reads will need to be merged together, and any false merges, known as bimeras, removed. This pipeline is based on this tutorial: https://benjjneb.github.io/dada2/bigdata_paired.html
+
+# Package used to filter and trim reads, find unique sequences, learn error rates, merge paired-end reads, and construct an ASV table.
+library("dada2")
+
+# Have your matched forward and reverse reads in separate folders. Reverse reads generally have lower quality scores, so their error rates will be different, and you will likely want to trim them shorter. Throughout this pipeline, F and R are used to designate forward and reverse
+pathF = "/nfs3/PHARM/David_Lab/maddy/T2DStudy/Forward/"
+pathR = "/nfs3/PHARM/David_Lab/maddy/T2DStudy/Reverse/"
+
+FFront = file.path(pathF, "filtered")
+FRev = file.path(pathR, "filtered")
+
+fastqFs = sort(list.files(pathF, pattern = "fastq"))
+fastqRs = sort(list.files(pathR, pattern = "fastq"))
+if(length(fastqFs) != length(fastqRs)) stop("Forward and reverse files do not match.") #check that the number of forward and reverse reads is the same.
+
+# truncLen decides where each read will be cut. This will depend on the quality of reads, which can be determined by viewing the quality profiles. This can't be done in the server, but can be done with RStudio. Please note that there must be overlap between forward and reverse reads in order to merge them.
+output=filterAndTrim(fwd=file.path(pathF, fastqFs), filt=file.path(FFront, fastqFs),
+        rev=file.path(pathR, fastqRs), filt.rev=file.path(FRev, fastqRs),
+        truncLen=c(280,265), maxEE=2, truncQ=11, maxN=0,rm.phix=TRUE, compress=TRUE,
+        verbose=TRUE, multithread=TRUE)
+head(output) # Compare reads in and reads out to ensure the majority have been kept.
+
+filtpathF = "/nfs3/PHARM/David_Lab/maddy/T2DStudy/Forward/filtered"
+filtpathR = "/nfs3/PHARM/David_Lab/maddy/T2DStudy/Reverse/filtered"
+
+filtFs = list.files(filtpathF, pattern = "fastq", full.names = TRUE)
+filtRs = list.files(filtpathR, pattern = "fastq", full.names = TRUE)
+#print(filtFs)  # Optional check that files are present
+set.seed(100)   # Learning error rates involves some randomness. Sets the random seed at the same value every time so results do not change while testing program.
+
+sample.names = sapply(strsplit(basename(filtFs), "_1"), `[`, 1)     # Pattern may need to change based on naming scheme of samples, these ones were "sampleID_1_R1_001.fastq". Be sure to split the name before anything that designates if it is a forward or reverse read, as the shortened name should match both halves of the pair.
+names(filtFs) = sample.names
+names(filtRs) = sample.names
+
+#print(sample.names)    # Optional check to ensure sample names are correct
+
+errF = learnErrors(filtFs, multithread=TRUE)    # These steps take a while. Because the quality will likely be different between the two types of reads, this and running the sequence variant inference step must be done separately for forward and reverse reads.
+errR = learnErrors(filtRs, multithread=TRUE)
+
+mergers = vector("list", length(sample.names))  #empty list to hold merged sequences
+names(mergers) = sample.names
+
+# For each sample, dereplicate the forward reads and perform sequence inference, correcting any small errors. Do the same for the reverse reads. Merge matched pairs and store result.
+for(sam in sample.names) {
+        cat("Processing:", sam, "\n")
+                derepF = derepFastq(filtFs[[sam]])
+                ddF = dada(derepF, err=errF, multithread=TRUE)
+                derepR = derepFastq(filtRs[[sam]])
+                ddR = dada(derepR, err=errR, multithread=TRUE)
+                merger = mergePairs(ddF, derepF, ddR, derepR)
+                mergers[[sam]] <- merger
+}
+rm(derepF); rm(derepR)
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)     # Check dimensions. Rows are samples, columns are unique sequences
+sum(seqtab)     # Check total number of reads
+saveRDS(seqtab, "/nfs3/PHARM/David_Lab/maddy/TRDS")
+s1 = readRDS("/nfs3/PHARM/David_Lab/maddy/TRDS")
+seqtab2 = removeBimeraDenovo(s1, method="consensus", multithread=TRUE)  #Removes incorrectly merged pairs
+dim(seqtab2)    # Compare to first table to see how many unique sequences were removed as bimeras
+sum(seqtab2)    # Compare to first table to see how many of the total reads were removed. It's okay if many of your unique sequences were removed so long as you retained most of your total reads; this just means that there were many rarely occuring bimeras.
+saveRDS(seqtab2, "/nfs3/PHARM/David_Lab/maddy/TRDS2")
