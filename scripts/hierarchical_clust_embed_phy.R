@@ -3,13 +3,13 @@ library(phangorn)
 library(ape)
 library(phyloseq)
 
-data_file = "/nfs3/PHARM/David_Lab/christine/quality_vectors_git/data/embed/embed_.07_100dim.txt"
+data_file = "data/embed/embed_.07_100dim.txt"
 qual_vecs <- read.table(data_file,
                         quote="\"", comment.char="", row.names = 1)
 qual_vecs <- qual_vecs[rownames(qual_vecs) != "<unk>", ]
 
 #2. read phylogenetic tree build using fasttree and clustalo msa
-phy_tree = read.tree("../data/embed/tree.nwk")
+phy_tree = read.tree("data/embed/tree.nwk")
 print("read phy tree")
 
 qual_vecs = qual_vecs[rownames(qual_vecs) %in% phy_tree$tip.label, ]
@@ -26,7 +26,7 @@ hierarchical_cluster <- function(mat){
 #hclust_tree <- as.phylo(hclust_true)
 #print("Tree built from embeddings")
 #saveRDS(hclust_tree, "../data/hclust_embed_true.rds")
-hclust_tree = readRDS("../data/hclust_embed_true.rds")
+hclust_tree = readRDS("data/hclust_embed_true.rds")
 print("read hclust tree")
 
 
@@ -34,7 +34,7 @@ print("read hclust tree")
 
 dist_true <- phangorn::treedist(hclust_tree, phy_tree)
 #print("Calculated true distance")
-saveRDS(dist_true, "../data/dist_true.rds")
+saveRDS(dist_true, "data/dist_true.rds")
 #print("Calculated distance")
 
 
@@ -58,7 +58,7 @@ for(i in seq(1, num_iter)){
 #p = sum(null_dists < dist_true[1]) / length(null_dists)
 #p
 print("calculated null distances")
-saveRDS(null_dists, "../data/null_dists3.rds")
+saveRDS(null_dists, "data/null_dists3.rds")
 
 #Checks the distance between two trees in comparison to random trees
 
@@ -67,7 +67,7 @@ saveRDS(null_dists, "../data/null_dists3.rds")
 ########### load objects and check results ##########
 #####################################################
 library(ggplot2)
-data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_git/data/"
+data_dir = "data/hierarchical_clust/"
 null_dists1 <- readRDS(paste(data_dir, "null_dists.rds", sep = ""))
 null_dists2 <- readRDS(paste(data_dir, "null_dists2.rds", sep = ""))
 null_dists3 <- readRDS(paste(data_dir, "null_dists3.rds", sep = ""))
@@ -79,16 +79,18 @@ sym_diffs_total <- c()
 for(null_dist_list in list(null_dists1, null_dists2, null_dists3, null_dists4)){
   sym_diffs_total <- c(sym_diffs_total, unlist(lapply(null_dist_list, function(x) return(x[[i]]))))
 }
+svg("hierarchical_clust_symm.svg")
 ggplot(data.frame(sym_diffs_total))+
-  geom_histogram(aes(x = sym_diffs_total, colour = "blue"), fill = "lightblue", color = "black", bins = 25)+
-  geom_vline(aes(xintercept = true_dist[[i]], colour = "red"), linetype = 4, size = 2)+ theme_bw()+
+  geom_histogram(aes(x = sym_diffs_total), fill = "lightblue", color = "black", bins = 25)+
+  geom_vline(aes(xintercept = true_dist[[i]], colour = "True Distance"), linetype = 4, size = 2)+ theme_bw()+
   theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), text = element_text(size=25))
-
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), text = element_text(size=25))+
+  labs(x = "Symmetric Difference", color = "") +
+  scale_color_manual(values = c('True Distance' = 'red'))
+dev.off()
 
 p = sum(sym_diffs_total < true_dist[[i]]) / length(sym_diffs_total)
 p
-
 
 
 i = 2
@@ -96,14 +98,15 @@ sym_diffs_total <- c()
 for(null_dist_list in list(null_dists1, null_dists2, null_dists3, null_dists4)){
   sym_diffs_total <- c(sym_diffs_total, unlist(lapply(null_dist_list, function(x) return(x[[i]]))))
 }
-
+svg('hierarchical_clust_branch.svg')
 ggplot(data.frame(sym_diffs_total))+
-  geom_histogram(aes(x = sym_diffs_total, colour = "blue"), fill = "lightblue", color = "black")+
-  geom_vline(aes(xintercept = true_dist[[i]], colour = "red"), linetype = 4, size = 2)+ theme_bw()+
+  geom_histogram(aes(x = sym_diffs_total),fill = "lightblue", color = "black")+
+  geom_vline(aes(xintercept = true_dist[[i]], colour = "True Distance"), linetype = 4, size = 2)+ theme_bw()+
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.line = element_line(colour = "black"), text = element_text(size=25))
-  
-
+        axis.line = element_line(colour = "black"), text = element_text(size=25)) +
+  labs(x = "Branch Score Difference", color = "") +
+  scale_color_manual(values = c('True Distance' = 'red'))
+dev.off()
 
 hist(sym_diffs_total, xlim = c(true_dist[[i]], max(sym_diffs_total) ))
 abline(v = true_dist[[i]], col = "red")
