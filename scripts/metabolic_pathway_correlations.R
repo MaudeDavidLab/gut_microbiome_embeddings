@@ -4,6 +4,7 @@ library(gtools)
 library(RColorBrewer)
 library(cowplot)
 library(pheatmap)
+library(GME)
 
 setwd("C:/Users/ctata/Documents/Lab/quality_vectors_final/data")
 data_dir = "C:/Users/ctata/Documents/Lab/quality_vectors_final/data/"
@@ -33,6 +34,9 @@ keep <- colSums(pathway_table) > 0
 keep2 <- colSums(pathway_table) < nrow(pathway_table)
 pathway_table <- pathway_table[, keep & keep2]
 
+#convert to full ASV from embedID
+rownames(pathway_table) <- convertIDs(rownames(pathway_table), from = "embedIDs", to = "ASV")
+
 
 #####################################
 ### Match, clean, and center   ######
@@ -47,9 +51,9 @@ taxa_names <- intersect(rownames(pathway_table), rownames(embed_table_glove)) #s
 pathway_table <- pathway_table[taxa_names, ]
 embed_table_glove <- embed_table_glove[taxa_names, ]
 embed_table_pca <- embed_table_pca[taxa_names, ]
-embed_table_pca <- apply(embed_table_pca, 2, function(x) return((x - mean(x) ) / sd(x)))
-embed_table_glove <- apply(embed_table_glove, 2, function(x) return((x - mean(x) ) / sd(x)))
 
+embed_table_glove <- apply(embed_table_glove, 2, function(x) return((x - mean(x) ) / sd(x)))
+embed_table_pca <- apply(embed_table_pca, 2, function(x) return((x - mean(x) ) / sd(x)))
 
 
 ####################################
@@ -146,12 +150,14 @@ plotHeatmap <- function(cor_mat_list){
   }
   
   p <- plot_grid(heatmaps[[1]][[4]], heatmaps[[2]][[4]],
-                 heatmaps[[3]][[4]], heatmaps[[4]][[4]])
+                 heatmaps[[3]][[4]], heatmaps[[4]][[4]], 
+                 labels = labs)
   p
   
-  pdf("../figures/cor_metabolic_pathways_grid.pdf", width = 5, height = 5)
+  #pdf("../figures/cor_metabolic_pathways_grid.pdf", width = 5, height = 5)
   p
-  dev.off()
+  #dev.off()
+  return(p)
 }
 
 
