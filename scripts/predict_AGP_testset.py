@@ -35,8 +35,7 @@ f = open(data_dir + "/AG_new/filter_.07/map_test_strictDiag" +  ".obj", "rb")
 map_test = pickle.load(f)
 f.close()
 
-qual_vecs, embed_ids, embed_seqs = hf.getQualVecs(data_dir)
-
+qual_vecs, embed_ids, embed_seqs = hf.getQualVecs(data_dir, dim = "100")
 otu_train = hf.matchOtuQual(otu_train, embed_ids, embed_seqs)
 otu_test = hf.matchOtuQual(otu_test, embed_ids, embed_seqs)
 

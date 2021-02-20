@@ -48,8 +48,8 @@ def is_number(s):
     except ValueError:
         return False
     
-def getQualVecs(data_dir):
-    qual_vec_file = data_dir + "embed/embed_.07_100dim.txt"
+def getQualVecs(data_dir, dim = "100"):
+    qual_vec_file = data_dir + "embed/embed_.07_" + dim + "dim.txt"
     qual_vecs = pd.read_csv(qual_vec_file, sep = " ", index_col = 0, dtype = {0:str})
     qual_repseqs = pd.read_csv(data_dir + "embed/seqs_.07_embed.fasta", sep = "\t", header = None)
     
