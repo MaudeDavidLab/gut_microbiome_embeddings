@@ -21,8 +21,7 @@ err_qid = pd.read_csv(data_dir + "/err-to-qid.txt", sep = "\t", index_col = 0)
 convert_sample_ids = err_qid.loc[otu.index.values, :]
 otu = otu.set_index(convert_sample_ids.sample_title)
 
-otu_clean, qual_vecs_clean = hf.match_otu_qual(otu, qual_vecs)
-otu_clean, map_clean = hf.match_otu_map(otu_clean, mapping)
+otu_clean, map_clean = hf.match_otu_map(otu, mapping)
 
 number_criteria = []
 cat_criteria = ["IBD", "EXERCISE_FREQUENCY", "SEX", "ONE_LITER_OF_WATER_A_DAY_FREQUENCY", 

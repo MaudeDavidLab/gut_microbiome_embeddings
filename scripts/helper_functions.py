@@ -80,8 +80,10 @@ def matchOtuQual(otu, embed_ids, embed_seqs):
     return(otu_reorder)
 
 def match_otu_map(otu, mapping):
-    map_clean = mapping.loc[otu.index.values,:] #Keep samples if present in otu
-    otu = otu.loc[map_clean.index.values, :]
+    sample_names = set(otu.index.values).intersection(set(mapping.index.values))
+    print(len(sample_names))
+    map_clean = mapping.loc[sample_names,:] #Keep samples if present in otu
+    otu = otu.loc[sample_names, :]
     map_clean = map_clean.reindex(sorted(map_clean.index.values))
     otu = otu.reindex(sorted(otu.index.values), axis = 0)
     
